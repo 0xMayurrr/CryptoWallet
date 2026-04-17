@@ -1,44 +1,52 @@
-# 🛡️ CryptoWallet: The Crimson Onyx Experience
+# 🛡️ CryptoWallet
+**Secure. Non-custodial. Institutional-grade mobile Ethereum management.**
 
-![Dashboard](assets/screenshots/dashboard.png)
+![Platform: Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square)
+![Built with Expo](https://img.shields.io/badge/Built%20with-Expo-000020?style=flat-square&logo=expo)
+![TypeScript](https://img.shields.io/badge/Language-TypeScript-3178C6?style=flat-square&logo=typescript)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
 
-## 🌟 Overview
+---
 
-**CryptoWallet** is a next-generation, institutional-grade cryptocurrency management platform. Built with a focus on high-performance aesthetics and uncompromising security, it provides a seamless interface for managing digital assets across multiple blockchains.
+## 📸 App Screenshots
 
-The application follows the **Crimson Onyx Design System**—a signature blend of deep obsidian tones and vibrant crimson highlights, designed to provide a premium, fintech-first user experience.
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><img src="./assets/screenshots/onboarding.png" width="180" alt="Onboarding" /><br /><b>Onboarding</b></td>
+      <td align="center"><img src="./assets/screenshots/home-dashboard.png" width="180" alt="Home Dashboard" /><br /><b>Dashboard</b></td>
+      <td align="center"><img src="./assets/screenshots/send.png" width="180" alt="Send" /><br /><b>Send</b></td>
+      <td align="center"><img src="./assets/screenshots/receive-qr.png" width="180" alt="Receive/QR" /><br /><b>Receive</b></td>
+      <td align="center"><img src="./assets/screenshots/swap.png" width="180" alt="Swap" /><br /><b>Swap</b></td>
+    </tr>
+  </table>
+</div>
 
 ---
 
 ## ✨ Features
 
-- **💎 Multi-Asset Management**: Support for Bitcoin, Ethereum, Solana, and 50+ ERC-20 tokens.
-- **🔄 Instant Swap**: High-liquidity token exchange with real-time price impact analysis.
-- **🔐 Vault-Grade Security**: AES-256 encryption for seed phrases and local biometric authentication.
-- **📈 Portfolio Analytics**: Interactive charts and performance tracking with glassmorphic cards.
-- **🚀 Advanced Animations**: Fully powered by `react-native-reanimated` for silky-smooth 60FPS UI transitions.
-- **🌐 Cross-Platform**: Optimized for both iOS and Android using Expo SDK.
-
----
-
-## 📸 Screenshots
-
-<div align="center">
-  <img src="assets/screenshots/dashboard.png" width="30%" />
-  <img src="assets/screenshots/swap.png" width="30%" />
-  <img src="assets/screenshots/security.png" width="30%" />
-</div>
+*   🔐 **Secure Key Management**: Seed phrase generation and encrypted local storage via iOS/Android Keychain.
+*   🏠 **Intuitive Dashboard**: Portfolio overview with real-time balance tracking and glassmorphic UI cards.
+*   📤 **Effortless Transfers**: Send ETH and ERC-20 tokens with QR code scanning and gas estimaton.
+*   📥 **Instant Receiving**: Modern Receive screen with high-resolution QR codes and one-tap address copying.
+*   📊 **Live Market Data**: Real-time coin price charts powered by optimized WebSocket streams.
+*   🔄 **Token Exchange**: Seamless in-app token swap functionality with liquidity analysis.
+*   🚀 **High Performance**: Silky-smooth animations powered by React Native Reanimated.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Framework**: [React Native](https://reactnative.dev/) via [Expo](https://expo.dev/)
-- **Logic**: TypeScript
-- **State Management**: Redux Toolkit / Context API
-- **Animations**: React Native Reanimated 3
-- **Icons**: Lucide & FontAwesome
-- **Theming**: Custom Crimson Onyx Engine
+| Library | Purpose |
+| :--- | :--- |
+| **ethers.js v5** | Secure Ethereum node interactions and cryptography |
+| **expo-secure-store** | AES-256 encryption for private keys and sensitive data |
+| **React Navigation** | Flexible stack and tab navigation architecture |
+| **react-native-reanimated** | Fluid, 60fps micro-interactions and transitions |
+| **WebSocket (ws)** | Low-latency live price feeds for market data |
+| **expo-camera** | Native QR code scanning and camera integration |
+| **TypeScript** | Type-safe development and improved code maintainability |
 
 ---
 
@@ -46,44 +54,104 @@ The application follows the **Crimson Onyx Design System**—a signature blend o
 
 ### Prerequisites
 
-- Node.js (v18+)
-- EAS CLI (`npm i -g eas-cli`)
-- Expo Go app on your mobile device
+*   Node.js (v18 or newer)
+*   npm or yarn
+*   Expo Go app installed on your physical device
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/0xMayurrr/CryptoWallet.git
-   cd CryptoWallet
-   ```
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/0xMayurrr/CryptoWallet.git
+    cd CryptoWallet
+    ```
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+2.  **Install dependencies**
+    ```bash
+    npm install
+    ```
 
-3. **Start the development server**
-   ```bash
-   npx expo start
-   ```
+3.  **Environment Setup**
+    Create a `.env` file in the root directory:
+    ```env
+    INFURA_PROJECT_ID=your_id_here
+    COINGECKO_API_KEY=your_key_here
+    ```
+
+4.  **Start Development**
+    ```bash
+    npx expo start
+    ```
+
+---
+
+## 📦 Building the APK
+
+To generate a production-ready Android APK using EAS Build:
+
+1.  **Install EAS CLI**
+    ```bash
+    npm install -g eas-cli
+    ```
+
+2.  **Login to Expo**
+    ```bash
+    eas login
+    ```
+
+3.  **Build Android APK**
+    ```bash
+    eas build -p android --profile production
+    ```
+
+---
+
+## 📂 Project Structure
+
+```text
+src/
+├── assets/          # Static assets (images, icons, fonts)
+├── components/      # Reusable UI components and animated wrappers
+├── constants/       # Theme tokens, API endpoints, and configuration
+├── screens/         # Main application screens (Home, Swap, Send, Recieve)
+├── services/        # Business logic, Web3 interactions, and WebSocket handlers
+├── store/           # Global state management and Context providers
+└── utils/           # Helper functions, formatting, and validation
+```
+
+---
+
+## 🛡️ Security
+
+CryptoWallet is built on the principle of **Your Keys, Your Crypto**. 
+
+*   **Seed Phrases**: Generated locally on-device. They are never transmitted over the network or stored in plaintext.
+*   **Encrypted Storage**: All private keys and seeds are stored using `expo-secure-store`, which leverages Android Keystore and iOS Keychain.
+*   **PIN Authentication**: Local PIN protection ensures that even if a device is unlocked, the wallet remains secure.
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+1.  Fork the Project
+2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the Branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
 
 ---
 
 ## 📄 License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+## 🙏 Acknowledgements
+
+*   [ethers.js](https://docs.ethers.org/v5/)
+*   [Expo Team](https://expo.dev/)
+*   [OpenZeppelin](https://openzeppelin.com/)
+*   [React Native Community](https://reactnative.dev/)
 
 <p align="center">Made with ❤️ by 0xMayurrr</p>
