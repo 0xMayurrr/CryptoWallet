@@ -1,0 +1,268 @@
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { View, Text, ActivityIndicator, Platform, useWindowDimensions, Animated } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Feather } from '@expo/vector-icons';
+
+import { WalletProvider, useWallet } from './store/WalletContext';
+import { Theme } from './constants';
+
+import HomeScreen         from './screens/HomeScreen';
+import SendScreen         from './screens/SendScreen';
+import ReceiveScreen      from './screens/ReceiveScreen';
+import SwapScreen         from './screens/SwapScreen';
+import CardScreen         from './screens/CardScreen';
+import PortfolioScreen    from './screens/PortfolioScreen';
+import HistoryScreen      from './screens/HistoryScreen';
+import SettingsScreen     from './screens/SettingsScreen';
+import CreateWalletScreen from './screens/CreateWalletScreen';
+import ImportWalletScreen from './screens/ImportWalletScreen';
+import LandingScreen      from './screens/LandingScreen';
+import SupportScreen      from './screens/SupportScreen';
+import ScanScreen         from './screens/ScanScreen';
+import SplashScreen       from './screens/SplashScreen';
+import PinScreen, { hasPinSetup, clearPin } from './screens/PinScreen';
+import CoinChartScreen    from './screens/CoinChartScreen';
+import OnboardingScreen, { shouldShowOnboarding } from './screens/OnboardingScreen';
+import WebLayout          from './components/WebLayout';
+
+const Tab   = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
+const T     = Theme.colors;
+
+function TabIcon({ name, color, focused }: { name: any; color: string; focused: boolean }) {
+  const scale = React.useRef(new Animated.Value(1)).current;
+  React.useEffect(() => {
+    Animated.spring(scale, {
+      toValue: focused ? 1.2 : 1,
+      useNativeDriver: true,
+      speed: 20,
+      bounciness: 12,
+    }).start();
+  }, [focused]);
+  return (
+    <Animated.View style={{ transform: [{ scale }], alignItems: 'center', justifyContent: 'center' }}>
+      <Feather name={name} size={22} color={color} />
+    </Animated.View>
+  );
+}
+
+function Tabs() {
+  const { isDarkMode } = useWallet();
+  const TC = isDarkMode ? Theme.colors : Theme.lightColors;
+  // key forces full remount on theme change so tab bar colours update instantly
+  return (
+    <Tab.Navigator
+      key={isDarkMode ? 'dark' : 'light'}
+      screenOptions={() => ({
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: TC.surface,
+          borderTopColor: TC.border,
+          borderTopWidth: 1,
+          height: 80,
+          paddingBottom: 24,
+          paddingTop: 10,
+        },
+        tabBarActiveTintColor: TC.primary,
+        tabBarInactiveTintColor: TC.textMuted,
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '700', marginTop: 4 },
+        tabBarBackground: () => (
+          <View style={{ flex: 1, backgroundColor: TC.surface, borderTopWidth: 1, borderTopColor: TC.border }} />
+        ),
+      })}
+    >
+      <Tab.Screen name="Home" component={HomeScreen} options={{
+        tabBarLabel: 'Home',
+        tabBarIcon: ({ color, focused }) => <TabIcon name="home" color={color} focused={focused} />,
+      }} />
+      <Tab.Screen name="Card" component={CardScreen} options={{
+        tabBarLabel: 'Card',
+        tabBarIcon: ({ color, focused }) => <TabIcon name="credit-card" color={color} focused={focused} />,
+      }} />
+      <Tab.Screen name="Send" component={SendScreen} options={{
+        tabBarLabel: 'Send',
+        tabBarIcon: ({ color, focused }) => <TabIcon name="send" color={color} focused={focused} />,
+      }} />
+      <Tab.Screen name="Assets" component={PortfolioScreen} options={{
+        tabBarLabel: 'Assets',
+        tabBarIcon: ({ color, focused }) => <TabIcon name="pie-chart" color={color} focused={focused} />,
+      }} />
+      <Tab.Screen name="Profile" component={SettingsScreen} options={{
+        tabBarLabel: 'Profile',
+        tabBarIcon: ({ color, focused }) => <TabIcon name="user" color={color} focused={focused} />,
+      }} />
+    </Tab.Navigator>
+  );
+}
+
+function MobileNavigator() {
+  const { hasWallet, isLoadingWallet, pinEnabled } = useWallet();
+  const [pinState, setPinState] = React.useState<'checking' | 'setup' | 'verify' | 'unlocked'>('checking');
+
+  React.useEffect(() => {
+    if (isLoadingWallet) return;
+    if (!hasWallet) { setPinState('unlocked'); return; }
+    setPinState('checking');
+    hasPinSetup().then(has => setPinState(has ? 'verify' : 'unlocked'));
+  }, [isLoadingWallet, hasWallet]);
+
+  // Watch for PIN setup trigger from SettingsScreen
+  React.useEffect(() => {
+    if (pinEnabled && pinState === 'unlocked') {
+      hasPinSetup().then(has => { if (!has) setPinState('setup'); });
+    }
+  }, [pinEnabled]);
+
+  if (isLoadingWallet || pinState === 'checking') {
+    return (
+      <View style={{ flex: 1, backgroundColor: T.background, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color={T.primary} />
+      </View>
+    );
+  }
+
+  if (pinState === 'verify') {
+    return <PinScreen mode="verify" onSuccess={() => setPinState('unlocked')} />;
+  }
+
+  if (pinState === 'setup') {
+    return <PinScreen mode="setup" onSuccess={() => setPinState('unlocked')} onCancel={() => setPinState('unlocked')} />;
+  }
+
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+      {!hasWallet ? (
+        <>
+          <Stack.Screen name="Landing"      component={LandingScreen} />
+          <Stack.Screen name="CreateWallet" component={CreateWalletScreen} />
+          <Stack.Screen name="ImportWallet" component={ImportWalletScreen} />
+        </>
+      ) : (
+        <>
+          <Stack.Screen name="Main"      component={Tabs} />
+          <Stack.Screen name="Send"      component={SendScreen} />
+          <Stack.Screen name="Receive"   component={ReceiveScreen} />
+          <Stack.Screen name="Swap"      component={SwapScreen} />
+          <Stack.Screen name="History"   component={HistoryScreen} />
+          <Stack.Screen name="Portfolio" component={PortfolioScreen} />
+          <Stack.Screen name="Settings"  component={SettingsScreen} />
+          <Stack.Screen name="Profile"   component={SettingsScreen} />
+          <Stack.Screen name="Support"   component={SupportScreen} />
+          <Stack.Screen name="Scan"      component={ScanScreen} />
+          <Stack.Screen name="CoinChart"  component={CoinChartScreen} />
+          <Stack.Screen name="CreateWallet" component={CreateWalletScreen} />
+          <Stack.Screen name="ImportWallet" component={ImportWalletScreen} />
+        </>
+      )}
+    </Stack.Navigator>
+  );
+}
+
+function WebApp() {
+  const { hasWallet, isLoadingWallet, walletAddress, network } = useWallet();
+  const [currentScreen, setCurrentScreen] = React.useState('Home');
+
+  React.useEffect(() => {
+    if (!isLoadingWallet) setCurrentScreen(hasWallet ? 'Home' : 'Landing');
+  }, [isLoadingWallet, hasWallet]);
+
+  React.useEffect(() => {
+    if (hasWallet) setCurrentScreen('Home');
+  }, [hasWallet]);
+
+  const setScreen = React.useCallback((screen: string) => setCurrentScreen(screen), []);
+  const nav = React.useMemo(() => ({
+    navigate: setScreen,
+    goBack: () => setCurrentScreen(cs => cs === 'ImportWallet' || cs === 'CreateWallet' ? 'Landing' : 'Home'),
+    replace: setScreen,
+  } as any), [setScreen]);
+
+  const renderScreen = () => {
+    switch (currentScreen) {
+      case 'Home':         return <HomeScreen navigation={nav} />;
+      case 'Send':         return <SendScreen navigation={nav} />;
+      case 'Receive':      return <ReceiveScreen navigation={nav} />;
+      case 'Swap':         return <SwapScreen navigation={nav} />;
+      case 'Card':         return <CardScreen navigation={nav} />;
+      case 'Assets':
+      case 'Portfolio':    return <PortfolioScreen navigation={nav} />;
+      case 'History':      return <HistoryScreen navigation={nav} />;
+      case 'Profile':
+      case 'Settings':     return <SettingsScreen navigation={nav} />;
+      case 'Support':      return <SupportScreen navigation={nav} />;
+      case 'Scan':         return <ScanScreen navigation={nav} />;
+      case 'CreateWallet': return <CreateWalletScreen navigation={nav} />;
+      case 'ImportWallet': return <ImportWalletScreen navigation={nav} />;
+      case 'Landing':      return <LandingScreen navigation={nav} />;
+      default:             return <HomeScreen navigation={nav} />;
+    }
+  };
+
+  if (isLoadingWallet) {
+    return (
+      <View style={{ flex: 1, backgroundColor: T.background, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color={T.primary} />
+      </View>
+    );
+  }
+
+  if (!hasWallet) {
+    const isLanding = currentScreen === 'Landing';
+    return (
+      <View style={{ flex: 1, backgroundColor: T.background, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ width: '100%', maxWidth: isLanding ? undefined : 480, height: '100%', flex: isLanding ? 1 : undefined }}>
+          {renderScreen()}
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <WebLayout currentScreen={currentScreen} onNavigate={setCurrentScreen} walletAddress={walletAddress} network={network}>
+      {renderScreen()}
+    </WebLayout>
+  );
+}
+
+export default function App() {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 800;
+  const [showSplash, setShowSplash]           = React.useState(true);
+  const [showOnboarding, setShowOnboarding]   = React.useState(false);
+
+  React.useEffect(() => {
+    shouldShowOnboarding().then(show => setShowOnboarding(show));
+  }, []);
+
+  if (Platform.OS === 'web' && isDesktop) {
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <WalletProvider><WebApp /></WalletProvider>
+      </GestureHandlerRootView>
+    );
+  }
+
+  if (showOnboarding) {
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <WalletProvider>
+          <OnboardingScreen onFinish={() => setShowOnboarding(false)} />
+        </WalletProvider>
+      </GestureHandlerRootView>
+    );
+  }
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <WalletProvider>
+        <NavigationContainer>
+          <MobileNavigator />
+        </NavigationContainer>
+      </WalletProvider>
+      {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
+    </GestureHandlerRootView>
+  );
+}
